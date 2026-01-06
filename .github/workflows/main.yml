@@ -23,7 +23,7 @@ jobs:
         run: pip install pyBCV
 
       - name: Ejecutar script de grabación
-        run: python history_bcv.py
+        run: python history_bcv.py --auto
 
       - name: Guardar cambios en el JSON
         run: |
