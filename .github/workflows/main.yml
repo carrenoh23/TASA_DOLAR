@@ -1,18 +1,9 @@
-name: Actualizar Tasa BCV
-
-on:
-  schedule:
-    # Se ejecuta a las 13:00 UTC (9:00 AM hora Venezuela)
-    # De lunes a viernes (1-5)
-    - cron: '0 13 * * 1-5'
-  workflow_dispatch: # Permite ejecutarlo manualmente para probar
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
+#Nuevo contenido
+steps:
       - name: Descargar repositorio
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Trae todo el historial para evitar errores de pull
 
       - name: Configurar Python
         uses: actions/setup-python@v4
@@ -22,14 +13,20 @@ jobs:
       - name: Instalar dependencias
         run: pip install pyBCV
 
-      - name: Ejecutar script de grabación
-        run: python history_bcv.py --auto
-
-      - name: Guardar cambios en el JSON
+      # PRIMERO: Sincronizamos Git para que el entorno esté limpio
+      - name: Configurar Git y Sincronizar
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add historial_tasas.json
           git pull origin main --rebase
+
+      # SEGUNDO: Corremos el script (que modificará el JSON localmente)
+      - name: Ejecutar script de grabación
+        run: python history_bcv.py --auto
+
+      # TERCERO: Guardamos y subimos (Ya no necesitamos pull aquí)
+      - name: Guardar cambios en el JSON
+        run: |
+          git add historial_tasas.json
           git commit -m "Auto-actualización tasa BCV: $(date +'%d-%m-%Y')" || exit 0
           git push origin main
