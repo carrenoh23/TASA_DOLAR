@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-import pyBCV
+import pyBCV  # Asegúrate que sea pyBCV (mayúsculas importan)
 
 ARCHIVO_DATOS = "historial_tasas.json"
 
@@ -29,8 +29,7 @@ def guardar_datos(diccionario):
 def obtener_tasa_bcv():
     try:
         bcv = pyBCV.Currency()
-        # Nota: Asegúrate de que pyBCV esté bien instalado en el servidor
-        tasa_texto = bcv.get_rate(currency_code="USD", prettify=False)
+        tasa_texto = bcv.get_rate(currency_code="USD")
         return float(tasa_texto.replace(",", "."))
     except Exception as e:
         print(f"⚠️ No se pudo conectar con el BCV: {e}")
@@ -38,28 +37,34 @@ def obtener_tasa_bcv():
 
 
 def menu_interactivo():
+    """Esta función solo corre en tu Arch Linux"""
     historico_tasas = cargar_datos()
     while True:
         print("\n" + "═" * 35)
         print("    GESTOR CAMBIARIO PRO (JSON)")
         print("═" * 35)
-        print("[1] Consultar Tasa / Convertir\n[2] Dashboard Histórico\n[3] Salir")
+        print("[1] Consultar Tasa / Convertir")
+        print("[2] Dashboard Histórico")
+        print("[3] Salir")
 
-        try:
-            opcion = input("\nSeleccione una opción: ")
-            if opcion == "1":
-                tasa = obtener_tasa_bcv()
-                if tasa:
-                    fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                    historico_tasas[fecha_hoy] = tasa
-                    guardar_datos(historico_tasas)
-                    print(f"✨ Tasa actual: {tasa} Bs.")
-            elif opcion == "2":
-                for fecha, valor in historico_tasas.items():
-                    print(f"{fecha:<22} | {valor:<10.2f}")
-            elif opcion == "3":
-                break
-        except EOFError:
+        opcion = input("\nSeleccione una opción: ")
+        if opcion == "1":
+            tasa = obtener_tasa_bcv()
+            if tasa:
+                fecha_hoy = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                historico_tasas[fecha_hoy] = tasa
+                guardar_datos(historico_tasas)
+                print(f"✨ Tasa actual: {tasa} Bs.")
+                try:
+                    monto_usd = float(input("Cantidad de USD a cambiar: "))
+                    print(f">>> Total: {monto_usd * tasa:.2f} Bs.")
+                except ValueError:
+                    print("❌ Entrada inválida.")
+        elif opcion == "2":
+            # ... (tu código de mostrar histórico igual)
+            for fecha, valor in historico_tasas.items():
+                print(f"{fecha:<22} | {valor:<10.2f}")
+        elif opcion == "3":
             break
 
 
